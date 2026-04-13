@@ -41,7 +41,7 @@ public class ControllerDiscussion {
 			showAlert(AlertType.ERROR, "Error", err);
 			return;
 		}
-		ViewDiscussion.refreshPostList(ModelDiscussion.loadAllPosts());
+		ViewDiscussion.refreshPostList(ModelDiscussion.loadAllPosts(user.getNewRole1()));
 	}
 
 	/*****
@@ -50,6 +50,7 @@ public class ControllerDiscussion {
      * <p> Description: Opens dialog to edit the selected post, updates it, and refreshes the list. </p>
      */
 	protected static void performEditPost() {
+		User user = ViewDiscussion.theUser;
 		Post post = ViewDiscussion.getSelectedPost();
 		if (post == null) {
 			showAlert(AlertType.WARNING, "No selection", "Select a post to edit.");
@@ -66,7 +67,7 @@ public class ControllerDiscussion {
 			showAlert(AlertType.ERROR, "Error", err);
 			return;
 		}
-		ViewDiscussion.refreshPostList(ModelDiscussion.loadAllPosts());
+		ViewDiscussion.refreshPostList(ModelDiscussion.loadAllPosts(user.getNewRole1()));
 		ViewDiscussion.showPostDetail(post);
 	}
 
@@ -76,6 +77,7 @@ public class ControllerDiscussion {
      * <p> Description: Confirms and deletes the selected post (and its replies), then refreshes the list. </p>
      */
 	protected static void performDeletePost() {
+		User user = ViewDiscussion.theUser;
 		Post post = ViewDiscussion.getSelectedPost();
 		if (post == null) {
 			showAlert(AlertType.WARNING, "No selection", "Select a post to delete.");
@@ -92,7 +94,7 @@ public class ControllerDiscussion {
 			return;
 		}
 		ViewDiscussion.clearSelection();
-		ViewDiscussion.refreshPostList(ModelDiscussion.loadAllPosts());
+		ViewDiscussion.refreshPostList(ModelDiscussion.loadAllPosts(user.getNewRole1()));
 	}
 
 

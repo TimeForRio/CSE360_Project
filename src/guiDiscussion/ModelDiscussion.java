@@ -6,6 +6,7 @@ import java.util.List;
 import database.Database;
 import entityClasses.Post;
 import entityClasses.Reply;
+import entityClasses.User;
 import guiTools.DiscussionValidator;
 
 /*******
@@ -13,6 +14,8 @@ import guiTools.DiscussionValidator;
  * <p> Description: Loads and persists posts and replies via Database; uses DiscussionValidator for create/update. </p>
  */
 public class ModelDiscussion {
+	
+	protected static User theUser;
 
 	/*****
      * <p> Method: ModelDiscussion() </p>
@@ -30,12 +33,14 @@ public class ModelDiscussion {
 	 * 
 	 * <p> Description: Loads all posts from the database. </p>
 	 * 
+	 * @param teacher specifies if a teacher role is searching or not.
+	 * 
 	 * @return ArrayList of posts from database
 	 * 
 	 */
-	public static List<Post> loadAllPosts() {
+	public static List<Post> loadAllPosts(Boolean teacher) {
 		try {
-			return theDatabase.getAllPosts();
+			return theDatabase.getAllPosts(teacher);
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return Collections.emptyList();
@@ -79,8 +84,10 @@ public class ModelDiscussion {
 	public static String createPost(String title, String body, String author) {
 		String err = DiscussionValidator.validatePost(title, body);
 		if (!err.isEmpty()) return err;
+		String role = theUser.getNewRole1() ? "teacher" : "student";
+		
 		try {
-			Post p = new Post(0, title.trim(), body.trim(), author);
+			Post p = new Post(0, title.trim(), body.trim(), author, role);
 			theDatabase.createPost(p);
 			return "";
 		} catch (SQLException e) {
@@ -149,8 +156,10 @@ public class ModelDiscussion {
 	public static String createReply(int parentPostId, String body, String author) {
 		String err = DiscussionValidator.validateReply(body);
 		if (!err.isEmpty()) return err;
+		String role = theUser.getNewRole1() ? "teacher" : "student";
+		
 		try {
-			Reply r = new Reply(0, parentPostId, body.trim(), author);
+			Reply r = new Reply(0, parentPostId, body.trim(), author, role);
 			theDatabase.createReply(r);
 			return "";
 		} catch (SQLException e) {

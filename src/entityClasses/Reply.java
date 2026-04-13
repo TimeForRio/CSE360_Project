@@ -10,6 +10,7 @@ public class Reply {
 	private int parentPostId;
 	private String body;
 	private String author;
+	private String role;
 
 	/**********
 	 * <p> Method: Reply() </p>
@@ -34,11 +35,12 @@ public class Reply {
 	 * @param author the username attached to this post
 	 * 
 	 */
-	public Reply(int id, int parentPostId, String body, String author) {
+	public Reply(int id, int parentPostId, String body, String author, String role) {
 		this.id = id;
 		this.parentPostId = parentPostId;
 		this.body = body == null ? "" : body;
 		this.author = author == null ? "" : author;
+		this.role = role == null? "" : role;
 	}
 
 	/**********
@@ -127,4 +129,14 @@ public class Reply {
 	 * 
 	 */
 	public void setAuthor(String author) { this.author = author == null ? "" : author; }
+	
+	/**********
+	 * <p> Method: String getRole() </p>
+	 * 
+	 * <p> Description: This gets the role of a Reply based on author </p>
+	 * 
+	 * @return role is the role assigned to a Reply
+	 * 
+	 */
+	public String getRole() { return role; }
 }

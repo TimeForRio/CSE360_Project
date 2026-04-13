@@ -1,5 +1,7 @@
 package entityClasses;
 
+import guiDiscussion.ViewDiscussion;
+
 /*******
  * <p> Title: Post Class </p>
  * <p> Description: Entity for a discussion post with id, title (max 100), body (max 1000), and author. </p>
@@ -10,6 +12,7 @@ public class Post {
 	private String title;
 	private String body;
 	private String author;
+	private String role;
 
 	/**********
 	 * <p> Method: Post() </p>
@@ -33,11 +36,12 @@ public class Post {
 	 * @param author the username attached to this post
 	 * 
 	 */
-	public Post(int id, String title, String body, String author) {
+	public Post(int id, String title, String body, String author, String role) {
 		this.id = id;
 		this.title = title == null ? "" : title;
 		this.body = body == null ? "" : body;
 		this.author = author == null ? "" : author;
+		this.role = role == null? "" : role;
 	}
 
 	/**********
@@ -126,5 +130,16 @@ public class Post {
 	 * 
 	 */
 	public void setAuthor(String author) { this.author = author == null ? "" : author; }
+
+	/**********
+	 * <p> Method: String getRole() </p>
+	 * 
+	 * <p> Description: This gets the role of a Post based on author </p>
+	 * 
+	 * @return role is the role assigned to a Post
+	 * 
+	 */
+	public String getRole() { return role; }
+	
 
 }

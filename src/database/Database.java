@@ -1094,11 +1094,12 @@ public class Database {
 	 *  
 	 */
 	public int createPost(Post post) throws SQLException {
-		String sql = "INSERT INTO posts (title, body, author) VALUES (?, ?, ?)";
+		String sql = "INSERT INTO posts (title, body, author, role) VALUES (?, ?, ?)";
 		try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 			pstmt.setString(1, post.getTitle());
 			pstmt.setString(2, post.getBody());
 			pstmt.setString(3, post.getAuthor());
+			pstmt.setString(4, post.getRole());
 			pstmt.executeUpdate();
 			ResultSet rs = pstmt.getGeneratedKeys();
 			if (rs.next()) return rs.getInt(1);
@@ -1109,19 +1110,44 @@ public class Database {
 	/*******
 	 * <p> Method: List getAllPosts() </p>
 	 * 
-	 * <p> Description: Reads and returns all posts in the database</p>
+	 * <p> Description: Reads and returns all posts in the database. If a teacher is present,
+	 *     then the list returns the list with student posts (with no teacher replies) first.</p>
+	 * 
+	 * @param teacher Is true if a teacher is present and adjusts the list output.
 	 * 
 	 * @throws SQLException when there is an issue creating the SQL command or executing it.
 	 * 
 	 * @return a List of posts
 	 */
-	public List<Post> getAllPosts() throws SQLException {
+	public List<Post> getAllPosts(boolean teacher) throws SQLException {
 		List<Post> list = new ArrayList<>();
-		String sql = "SELECT id, title, body, author FROM posts ORDER BY id";
+		String sql;
+		
+		if (teacher) {
+			sql = """
+					SELECT p.id, p.title, p.body, p.author
+			FROM posts p
+			LEFT JOIN replies r 
+				ON p.id = r.parentPostId 
+				AND r.role = 'teacher'
+			
+			GROUP BY p.id, p.title, p.body, p.author, p.role
+			
+			ORDER BY 
+				CASE 
+					WHEN p.role = 'student' AND COUNT(r.parentPostId) = 0 THEN 0
+					WHEN p.role = 'student' THEN 1
+					ELSE 2
+				END,
+				p.id
+			""";
+		} else {
+			sql = "SELECT id, title, body, author FROM posts ORDER BY id";
+		}
 		try (PreparedStatement pstmt = connection.prepareStatement(sql);
 			 ResultSet rs = pstmt.executeQuery()) {
 			while (rs.next()) {
-				list.add(new Post(rs.getInt("id"), rs.getString("title"), rs.getString("body"), rs.getString("author")));
+				list.add(new Post(rs.getInt("id"), rs.getString("title"), rs.getString("body"), rs.getString("author"), rs.getString("role")));
 			}
 		}
 		return list;
@@ -1141,7 +1167,7 @@ public class Database {
 	 */
 	public List<Post> getPostsSubsetBySearch(String searchTerm) throws SQLException {
 		if (searchTerm == null || searchTerm.trim().isEmpty())
-			return getAllPosts();
+			return getAllPosts(false);
 		List<Post> list = new ArrayList<>();
 		String sql = "SELECT id, title, body, author FROM posts WHERE LOWER(title) LIKE ? OR LOWER(body) LIKE ? ORDER BY id";
 		try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -1150,7 +1176,7 @@ public class Database {
 			pstmt.setString(2, term);
 			ResultSet rs = pstmt.executeQuery();
 			while (rs.next()) {
-				list.add(new Post(rs.getInt("id"), rs.getString("title"), rs.getString("body"), rs.getString("author")));
+				list.add(new Post(rs.getInt("id"), rs.getString("title"), rs.getString("body"), rs.getString("author"), rs.getString("role")));
 			}
 		}
 		return list;
@@ -1173,7 +1199,7 @@ public class Database {
 			pstmt.setInt(1, id);
 			ResultSet rs = pstmt.executeQuery();
 			if (rs.next())
-				return new Post(rs.getInt("id"), rs.getString("title"), rs.getString("body"), rs.getString("author"));
+				return new Post(rs.getInt("id"), rs.getString("title"), rs.getString("body"), rs.getString("author"), rs.getString("role"));
 		}
 		return null;
 	}
@@ -1233,11 +1259,12 @@ public class Database {
 	 * @return the replies generated Id if created, -1 on error
 	 */
 	public int createReply(Reply reply) throws SQLException {
-		String sql = "INSERT INTO replies (parentPostId, body, author) VALUES (?, ?, ?)";
+		String sql = "INSERT INTO replies (parentPostId, body, author, role) VALUES (?, ?, ?)";
 		try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 			pstmt.setInt(1, reply.getParentPostId());
 			pstmt.setString(2, reply.getBody());
 			pstmt.setString(3, reply.getAuthor());
+			pstmt.setString(4, reply.getRole());
 			pstmt.executeUpdate();
 			ResultSet rs = pstmt.getGeneratedKeys();
 			if (rs.next()) return rs.getInt(1);
@@ -1263,7 +1290,7 @@ public class Database {
 			pstmt.setInt(1, parentPostId);
 			ResultSet rs = pstmt.executeQuery();
 			while (rs.next()) {
-				list.add(new Reply(rs.getInt("id"), rs.getInt("parentPostId"), rs.getString("body"), rs.getString("author")));
+				list.add(new Reply(rs.getInt("id"), rs.getInt("parentPostId"), rs.getString("body"), rs.getString("author"), rs.getString("role")));
 			}
 		}
 		return list;
@@ -1286,7 +1313,7 @@ public class Database {
 			pstmt.setInt(1, id);
 			ResultSet rs = pstmt.executeQuery();
 			if (rs.next())
-				return new Reply(rs.getInt("id"), rs.getInt("parentPostId"), rs.getString("body"), rs.getString("author"));
+				return new Reply(rs.getInt("id"), rs.getInt("parentPostId"), rs.getString("body"), rs.getString("author"), rs.getString("role"));
 		}
 		return null;
 	}
